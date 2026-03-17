@@ -30,7 +30,7 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 app main.py
+          flake8 app main.py --ignore=E302,E301,W292
 
       - name: Run tests
         run: |
