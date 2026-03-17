@@ -1,0 +1,33 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        default: "latest"
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, fastapi-runner]
+
+    environment:
+      name: production
+
+    steps:
+      - name: Pull Docker Image
+        run: |
+          docker pull ${{ secrets.AWS_ECR_REPO }}:${{ github.event.inputs.image_tag }}
+
+      - name: Stop old container
+        run: |
+          docker stop fastapi-app || true
+          docker rm fastapi-app || true
+
+      - name: Run new container
+        run: |
+          docker run -d -p 8000:8000 \
+          --name fastapi-app \
+          -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+          ${{ secrets.AWS_ECR_REPO }}:${{ github.event.inputs.image_tag }}

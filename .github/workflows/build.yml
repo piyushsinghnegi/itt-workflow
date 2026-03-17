@@ -1,0 +1,59 @@
+name: Build and Push Docker Image (ECR)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, fastapi-runner]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR Public
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+
+      - name: Build Docker Image
+        run: |
+          docker build -t fastapi-app .
+
+      - name: Tag Image (latest)
+        run: |
+          docker tag fastapi-app:latest ${{ secrets.AWS_ECR_REPO }}:latest
+
+      - name: Tag Image (commit SHA)
+        run: |
+          docker tag fastapi-app:latest ${{ secrets.AWS_ECR_REPO }}:${{ github.sha }}
+
+      - name: Push Images
+        run: |
+          docker push ${{ secrets.AWS_ECR_REPO }}:latest
+          docker push ${{ secrets.AWS_ECR_REPO }}:${{ github.sha }}
+
+      - name: Notify Teams
+        if: always()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Build Status",
+            "themeColor": "0076D7",
+            "title": "Docker Build Status",
+            "text": "Build completed with status: ${{ job.status }}"
+          }' \
+          ${{ secrets.TEAMS_WEBHOOK_URL }}
