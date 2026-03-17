@@ -26,7 +26,7 @@ def index(request: Request, db: Session = Depends(get_db)):
     items = crud.get_items(db)
     return templates.TemplateResponse(
         "index.html", {
-            "request": request, 
+            "request": request,
             "items": items
         }
     )
@@ -43,8 +43,8 @@ def create_page(request: Request):
 
 @app.post("/create")
 def create_item(
-    name: str = Form(...), 
-    description: str = Form(...), 
+    name: str = Form(...),
+    description: str = Form(...),
     db: Session = Depends(get_db)
 ):
 
