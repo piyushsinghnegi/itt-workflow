@@ -25,18 +25,27 @@ def get_db():
 def index(request: Request, db: Session = Depends(get_db)):
     items = crud.get_items(db)
     return templates.TemplateResponse(
-        "index.html", {"request": request, "items": items}
+        "index.html", {
+            "request": request, 
+            "items": items
+        }
     )
 
 
 @app.get("/create")
 def create_page(request: Request):
-    return templates.TemplateResponse("create.html", {"request": request})
+    return templates.TemplateResponse(
+        "create.html", {
+            "request": request
+        }
+    )
 
 
 @app.post("/create")
 def create_item(
-    name: str = Form(...), description: str = Form(...), db: Session = Depends(get_db)
+    name: str = Form(...), 
+    description: str = Form(...), 
+    db: Session = Depends(get_db)
 ):
 
     crud.create_item(db, name, description)
@@ -49,7 +58,12 @@ def edit_page(item_id: int, request: Request, db: Session = Depends(get_db)):
 
     item = crud.get_item(db, item_id)
 
-    return templates.TemplateResponse("edit.html", {"request": request, "item": item})
+    return templates.TemplateResponse(
+        "edit.html", {
+            "request": request,
+            "item": item
+        }
+    )
 
 
 @app.post("/edit/{item_id}")
