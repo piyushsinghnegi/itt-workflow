@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crud app</title>
+</head>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+}
+
+.container{
+    width:500px;
+    margin:80px auto;
+    background:white;
+    padding:20px;
+    border-radius:8px;
+    text-align:center;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+ul{
+    list-style:none;
+    padding:0;
+}
+
+li{
+    padding:12px;
+    margin:10px 0;
+    border-bottom:1px solid #ddd;
+}
+
+button{
+    padding:6px 12px;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.create-btn{
+    background:#4CAF50;
+    color:white;
+    margin-bottom:20px;
+}
+
+.edit-btn{
+    background:#2196F3;
+    color:white;
+}
+
+.delete-btn{
+    background:#f44336;
+    color:white;
+}
+
+.desc{
+    color:gray;
+}
+</style>
+<body>
+    <div class="container">
+    <h2>Items List</h2>
+        <a href="/create">
+            <button class="create-btn">Create Item</button>
+        </a>
+        <ul>
+            {% for item in items %}
+            <li>
+                <b>{{item.name}}</b><br>
+                <span class="desc">{{item.description}}</span>
+                <br><br>
+                <a href="/edit/{{item.id}}">
+                    <button class="edit-btn">Edit</button>
+                </a>
+                <a href="/delete/{{item.id}}">
+                    <button class="delete-btn">Delete</button>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

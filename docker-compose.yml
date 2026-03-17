@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+
+    env_file:
+      - .env
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: fastapi_app
+
+    env_file:
+      - .env
+
+    depends_on:
+      - db
+
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
