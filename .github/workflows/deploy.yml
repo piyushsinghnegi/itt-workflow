@@ -1,33 +1,30 @@
 name: Deploy to Production
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Docker image tag to deploy"
-        required: true
-        default: "latest"
+  workflow_run:
+    workflows: ["Build and Push Docker Image"]
+    types: [completed]
 
 jobs:
   deploy:
-    runs-on: [self-hosted, linux, fastapi-runner]
-
-    environment:
-      name: production
+    runs-on: self-hosted
+    environment: production
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Pull Docker Image
-        run: |
-          docker pull ${{ secrets.AWS_ECR_REPO }}:${{ github.event.inputs.image_tag }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Stop old container
+      - name: Create .env file
         run: |
-          docker stop fastapi-app || true
-          docker rm fastapi-app || true
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
 
-      - name: Run new container
+      - name: Deploy with Docker Compose
         run: |
-          docker run -d -p 8000:8000 \
-          --name fastapi-app \
-          -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-          ${{ secrets.AWS_ECR_REPO }}:${{ github.event.inputs.image_tag }}
+          # Pull the latest image we just built
+          docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
+          # Down removes old containers, Up starts new ones in background
+          docker compose down
+          docker compose up -d

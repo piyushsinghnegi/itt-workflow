@@ -13,7 +13,7 @@ services:
       - "5432:5432"
 
   web:
-    build: .
+    image: piyushsinghnegi/fastapi-app:latest
     container_name: fastapi_app
 
     env_file:
