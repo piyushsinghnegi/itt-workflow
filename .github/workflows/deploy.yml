@@ -16,14 +16,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create .env file
-        shell: bash
+        shell: powershell
         run: |
           "DATABASE_URL=${{ secrets.DATABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
           "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" | Out-File -FilePath .env -Encoding utf8 -Append
           "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" | Out-File -FilePath .env -Encoding utf8 -Append
 
       - name: Deploy with Docker Compose
-        shell: bash
+        shell: powershell
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
           docker compose down
@@ -31,14 +31,17 @@ jobs:
       
       - name: Notify Teams
         if: always()
+        shell: powershell
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"@type\": \"MessageCard\",
-            \"@context\": \"http://schema.org/extensions\",
-            \"summary\": \"Deploy Status\",
-            \"themeColor\": \"0076D7\",
-            \"title\": \"Deploy Status local runner\",
-            \"text\": \"Deploy completed with status: ${{ job.status }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK_URL }}
+          try {
+            Invoke-RestMethod -Uri ${{ secrets.TEAMS_WEBHOOK_URL }} -Method Post -ContentType "application/json" -Body (@{
+              "@type" = "MessageCard"
+              "@context" = "http://schema.org/extensions"
+              "summary" = "Deploy Status"
+              "themeColor" = "0076D7"
+              "title" = "Deploy Status local runner"
+              "text" = "Deploy completed with status: $($env:GITHUB_JOB_STATUS)"
+            } | ConvertTo-Json -Compress)
+          } catch {
+            Write-Host "Teams notification failed"
+          }
