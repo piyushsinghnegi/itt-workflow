@@ -18,16 +18,14 @@ jobs:
       - name: Create .env file
         shell: bash
         run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          "DATABASE_URL=${{ secrets.DATABASE_URL }}" | Out-File -FilePath .env -Encoding utf8
+          "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" | Out-File -FilePath .env -Encoding utf8 -Append
+          "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" | Out-File -FilePath .env -Encoding utf8 -Append
 
       - name: Deploy with Docker Compose
         shell: bash
         run: |
-          # Pull the latest image we just built
           docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-app:latest
-          # Down removes old containers, Up starts new ones in background
           docker compose down
           docker compose up -d
       
@@ -43,4 +41,4 @@ jobs:
             \"title\": \"Deploy Status local runner\",
             \"text\": \"Deploy completed with status: ${{ job.status }}\"
           }" \
-          ${{ secrets.TEAMS_WEBHOOK_URL }} || true
+          ${{ secrets.TEAMS_WEBHOOK_URL }}
